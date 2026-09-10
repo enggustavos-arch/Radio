@@ -126,12 +126,16 @@
 
   /* ---------- paisagem / telas baixas ---------- */
   @media (orientation:landscape){
+    body{
+      padding-left:max(52px, env(safe-area-inset-left));
+      padding-right:max(52px, env(safe-area-inset-right));
+    }
     .stack{padding:6px 14px;gap:10px}
     .dial{width:40px;height:40px;flex-basis:40px}
-    .screen{padding:10px 108px 10px 16px;gap:8px}
-    nav{padding:7px 14px 7px 14px}
+    .screen{padding:10px 64px 10px 16px;gap:8px}
+    nav{padding:7px 14px}
     button{padding:10px}
-    #next{margin-right:96px}
+    #next{margin-right:56px}
     .dock{min-height:0;padding:6px 16px calc(6px + env(safe-area-inset-bottom))}
     .dock .hint{display:none}
   }
