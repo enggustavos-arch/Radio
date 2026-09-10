@@ -64,6 +64,47 @@
   .spacer{flex:1}
   .meta{font-size:12px;color:var(--mute);letter-spacing:.14em;white-space:nowrap;font-family:ui-monospace,Menlo,monospace}
 
+  /* ---------- faixa de rota ---------- */
+  #route{
+    position:relative;z-index:2;flex:0 0 auto;
+    display:flex;align-items:center;gap:14px;
+    padding:9px 20px 4px;
+    border-bottom:1px solid var(--line);
+  }
+  .ap{
+    font:700 13px ui-monospace,Menlo,monospace;letter-spacing:.16em;
+    color:var(--scope);white-space:nowrap;opacity:.9;
+    text-shadow:0 0 14px rgba(31,224,168,.35);
+  }
+  .ap.off{color:var(--mute);opacity:.55;text-shadow:none}
+  #track{position:relative;flex:1 1 auto;height:30px;min-width:60px}
+  #track::before{
+    content:"";position:absolute;left:0;right:0;top:8px;height:2px;
+    background:var(--line);border-radius:2px;
+  }
+  #fill{
+    position:absolute;left:0;top:8px;height:2px;width:0;
+    background:var(--scope);opacity:.5;border-radius:2px;
+    transition:width .45s ease;
+  }
+  .node{
+    position:absolute;top:3px;width:12px;height:12px;margin-left:-6px;
+    border-radius:50%;background:var(--deep);
+    border:1.5px solid rgba(120,190,215,.32);
+    transition:transform .3s ease, box-shadow .3s ease, background .3s ease;
+  }
+  .node.done{background:var(--scope);border-color:var(--scope);opacity:.45}
+  .node.now{
+    background:var(--scope);border-color:var(--scope);
+    box-shadow:0 0 16px var(--scope);transform:scale(1.4);
+  }
+  .node b{
+    position:absolute;top:15px;left:50%;transform:translateX(-50%);
+    font:700 9px ui-monospace,Menlo,monospace;letter-spacing:.12em;
+    color:var(--scope);white-space:nowrap;display:none;
+  }
+  .node.now b{display:block}
+
   /* ---------- palco ---------- */
   main{
     position:relative;z-index:2;flex:1 1 auto;min-height:0;
@@ -109,6 +150,9 @@
       padding-right:max(54px, env(safe-area-inset-right));
     }
     header{padding:7px 18px}
+    #route{padding:5px 18px 2px}
+    #track{height:26px}
+    .ap{font-size:11px}
     main{padding:10px 120px 8px 18px}
     .kicker{margin-bottom:5px}
     #tip{margin-top:7px;font-size:13px}
@@ -139,6 +183,12 @@
   <span class="spacer"></span>
   <span class="meta" id="meta">VH-VHD</span>
 </header>
+
+<div id="route">
+  <span class="ap off" id="orig">DEP</span>
+  <span id="track"><i id="fill"></i></span>
+  <span class="ap off" id="dest">ARR</span>
+</div>
 
 <main>
   <div class="kicker">You say</div>
@@ -185,6 +235,35 @@
     ticks.appendChild(t);
   });
 
+  /* ----- route strip ----- */
+  var PHASES=['PARKED','TAXI','DEPARTURE','ENROUTE','ARRIVAL','LANDED'];
+  var track=document.getElementById('track');
+  var fillEl=document.getElementById('fill');
+  var origEl=document.getElementById('orig');
+  var destEl=document.getElementById('dest');
+  var nodes=PHASES.map(function(name,i){
+    var d=document.createElement('span');
+    d.className='node';
+    d.style.left=(i/(PHASES.length-1)*100)+'%';
+    var b=document.createElement('b');
+    b.textContent=name;
+    d.appendChild(b);
+    track.appendChild(d);
+    return d;
+  });
+  var leg={origem:'',destino:'',fase:''};
+  function setRoute(origem,destino,fase){
+    origEl.textContent=origem||'DEP';
+    destEl.textContent=destino||'ARR';
+    origEl.className='ap'+(origem?'':' off');
+    destEl.className='ap'+(destino?'':' off');
+    var k=PHASES.indexOf(String(fase||'').toUpperCase());
+    nodes.forEach(function(d,i){
+      d.className='node'+(k<0?'':(i<k?' done':(i===k?' now':'')));
+    });
+    fillEl.style.width=(k<0?0:(k/(PHASES.length-1)*100))+'%';
+  }
+
   /* ----- text auto-fit ----- */
   function fit(){
     var span=sayEl.firstElementChild;
@@ -214,6 +293,7 @@
     tipEl.textContent=it.dica||'';
     stnEl.textContent=it.estacao||'ATC';
     metaEl.textContent='VH-VHD  ·  '+(i+1)+'/'+hist.length;
+    setRoute(it.origem,it.destino,it.fase);
     fit();
   }
   function push(item){
@@ -224,7 +304,11 @@
   function mostrarFrase(args){
     args=args||{};
     if(!args.texto) return 'no text';
-    push({texto:String(args.texto), dica:args.dica?String(args.dica):'', estacao:args.estacao?String(args.estacao):'ATC'});
+    if(args.origem)  leg.origem  = String(args.origem);
+    if(args.destino) leg.destino = String(args.destino);
+    if(args.fase)    leg.fase    = String(args.fase);
+    push({texto:String(args.texto), dica:args.dica?String(args.dica):'', estacao:args.estacao?String(args.estacao):'ATC',
+          origem:leg.origem, destino:leg.destino, fase:leg.fase});
     return 'shown';
   }
   window.mostrar_frase = mostrarFrase;
