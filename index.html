@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <title>Fonia VH-VHD</title>
@@ -141,14 +141,14 @@
 </header>
 
 <main>
-  <div class="kicker">Você fala</div>
-  <div id="say"><span class="idle">Toque em falar e comece a conversa. O controlador vai colocar aqui a frase que você deve dizer.</span></div>
+  <div class="kicker">You say</div>
+  <div id="say"><span class="idle">Tap to talk and start the session. Your next transmission appears here.</span></div>
   <div id="tip"></div>
 </main>
 
 <footer id="dock" data-widget="off">
-  <span class="hint">Toque para falar</span>
-  <a class="fallback" href="https://elevenlabs.io/app/talk-to?agent_id=agent_0301m24b5z0det78725wqkdphtx5" target="_blank" rel="noopener">Abrir o controlador</a>
+  <span class="hint">TAP TO TALK</span>
+  <a class="fallback" href="https://elevenlabs.io/app/talk-to?agent_id=agent_0301m24b5z0det78725wqkdphtx5" target="_blank" rel="noopener">Open the controller</a>
   <elevenlabs-convai agent-id="agent_0301m24b5z0det78725wqkdphtx5"></elevenlabs-convai>
 </footer>
 
@@ -161,7 +161,7 @@
   var metaEl = document.getElementById('meta');
   var dock  = document.getElementById('dock');
 
-  /* ----- radar ----- */
+  /* ----- radar scope ----- */
   var rings=document.getElementById('rings'), spokes=document.getElementById('spokes'), ticks=document.getElementById('ticks');
   var NS='http://www.w3.org/2000/svg';
   [45,90,135,180].forEach(function(r,i){
@@ -185,7 +185,7 @@
     ticks.appendChild(t);
   });
 
-  /* ----- auto-fit do texto ----- */
+  /* ----- text auto-fit ----- */
   function fit(){
     var span=sayEl.firstElementChild;
     if(!span) return;
@@ -203,7 +203,7 @@
   window.addEventListener('resize',fit);
   window.addEventListener('orientationchange',function(){setTimeout(fit,250)});
 
-  /* ----- histórico ----- */
+  /* ----- history ----- */
   var hist=[], idx=-1;
   function render(i){
     var it=hist[i]; if(!it) return;
@@ -220,12 +220,12 @@
     hist.push(item); idx=hist.length-1; render(idx);
   }
 
-  /* ----- a client tool ----- */
+  /* ----- client tool ----- */
   function mostrarFrase(args){
     args=args||{};
-    if(!args.texto) return 'sem texto';
+    if(!args.texto) return 'no text';
     push({texto:String(args.texto), dica:args.dica?String(args.dica):'', estacao:args.estacao?String(args.estacao):'ATC'});
-    return 'mostrado';
+    return 'shown';
   }
   window.mostrar_frase = mostrarFrase;
 
@@ -244,13 +244,13 @@
   var widget = document.querySelector('elevenlabs-convai');
   wire(widget);
 
-  /* o custom element pode montar depois; observa e religa */
+  /* the custom element may mount late; observe and rewire */
   var mo = new MutationObserver(function(){
     wire(document.querySelector('elevenlabs-convai'));
   });
   mo.observe(document.body,{childList:true,subtree:true});
 
-  /* estado do widget */
+  /* widget state */
   var tries=0;
   var iv=setInterval(function(){
     tries++;
@@ -265,7 +265,7 @@
     }
   },400);
 
-  /* voltar / avançar no histórico */
+  /* step through history */
   function step(d){
     if(!hist.length) return;
     var n=idx+d;
