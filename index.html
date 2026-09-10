@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Fonia VH-VHD</title>
+<style>
+  :root{
+    --case:#0A0C0D;        /* moldura do painel */
+    --panel:#14191C;       /* chapa */
+    --glass:#0D1114;       /* vidro do instrumento */
+    --line:#222C31;
+    --ink:#EEF3F5;
+    --dim:#7E9099;
+    --lit:#FFB454;         /* iluminação noturna */
+    --lit-soft:rgba(255,180,84,.16);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html{height:100%;background:#0A0C0D}
+  body{
+    height:100%;margin:0;background:#0A0C0D!important;color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    display:flex;flex-direction:column;overflow:hidden;
+    padding-top:env(safe-area-inset-top);
+    padding-left:env(safe-area-inset-left);
+    padding-right:env(safe-area-inset-right);
+  }
+
+  /* ---------- faixa de instrumentos ---------- */
+  .stack{
+    flex:0 0 auto;display:flex;align-items:center;gap:14px;
+    padding:10px 16px;background:var(--panel);
+    border-bottom:1px solid #000;
+    box-shadow:inset 0 -1px 0 var(--line);
+  }
+
+  .dial{
+    width:56px;height:56px;flex:0 0 56px;border-radius:50%;
+    background:radial-gradient(circle at 50% 42%,#151B1F 0%,var(--glass) 62%,#05080A 100%);
+    border:3px solid var(--case);
+    box-shadow:0 0 0 1px #2A363C, inset 0 2px 6px rgba(0,0,0,.9);
+    position:relative;
+  }
+  .dial svg{position:absolute;inset:0;width:100%;height:100%}
+  .dial .needle{transform-origin:50% 50%;transition:transform .35s ease}
+
+  .readout{
+    flex:1;min-width:0;background:var(--glass);
+    border:1px solid var(--case);border-radius:5px;
+    box-shadow:inset 0 1px 4px rgba(0,0,0,.8), 0 0 14px var(--lit-soft);
+    padding:7px 11px;display:flex;align-items:baseline;gap:10px;
+  }
+  .readout .stn{
+    color:var(--lit);font-size:clamp(15px,4.4vw,19px);font-weight:700;
+    letter-spacing:.14em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    text-shadow:0 0 10px rgba(255,180,84,.5);
+  }
+  .readout .ct{margin-left:auto;color:var(--dim);font-size:12px;letter-spacing:.06em;white-space:nowrap}
+
+  select{
+    flex:0 0 auto;background:var(--glass);color:var(--ink);
+    border:1px solid var(--case);border-radius:5px;padding:8px 6px;
+    font-size:12px;font-family:inherit;max-width:34vw;
+  }
+
+  /* ---------- tela principal ---------- */
+  .screen{
+    flex:1;min-height:0;position:relative;
+    margin:0;padding:16px 18px;
+    background:
+      radial-gradient(120% 90% at 50% 0%,rgba(255,180,84,.05) 0%,transparent 60%),
+      var(--glass);
+    border-top:1px solid var(--case);
+    display:flex;flex-direction:column;justify-content:flex-start;gap:12px;
+    overflow:hidden;
+  }
+
+  .atc{
+    flex:0 0 auto;border-left:3px solid var(--lit);padding-left:12px;
+    color:var(--lit);line-height:1.4;font-weight:500;
+    font-size:clamp(13px,3.4vw,17px);
+  }
+  .atc .who,.say .who{
+    display:block;font-size:11px;color:var(--dim);font-weight:400;
+    letter-spacing:.1em;margin-bottom:5px;
+  }
+  .say{
+    flex:0 1 auto;min-height:0;font-weight:700;line-height:1.14;
+    letter-spacing:-.015em;font-size:34px;
+    text-shadow:0 0 24px rgba(238,243,245,.12);
+  }
+  .tip{flex:0 0 auto;color:var(--dim);font-size:clamp(12px,3.1vw,15px);line-height:1.45}
+
+  /* ---------- comandos ---------- */
+  nav{
+    flex:0 0 auto;display:flex;gap:10px;padding:10px 16px;
+    background:var(--panel);border-top:1px solid #000;
+    box-shadow:inset 0 1px 0 var(--line);
+  }
+  button{
+    flex:1;font-family:inherit;font-size:15px;font-weight:700;color:var(--ink);
+    letter-spacing:.04em;
+    background:linear-gradient(#1D242A,#151B20);
+    border:1px solid var(--case);border-radius:7px;
+    box-shadow:0 1px 0 #2C363D inset,0 2px 3px rgba(0,0,0,.6);
+    padding:14px 10px;cursor:pointer;
+  }
+  button:active{background:#11161A;box-shadow:inset 0 2px 5px rgba(0,0,0,.8)}
+  button:focus-visible{outline:2px solid var(--lit);outline-offset:2px}
+  #back{flex:0 0 62px}
+
+  /* ---------- base do rádio ---------- */
+  .dock{
+    flex:0 0 auto;min-height:150px;
+    padding:22px 16px calc(12px + env(safe-area-inset-bottom));
+    background:var(--panel);border-top:1px solid #000;
+    display:flex;align-items:center;justify-content:center;position:relative;
+  }
+  .dock .hint{position:absolute;top:7px;left:16px;font-size:11px;color:var(--dim);letter-spacing:.08em}
+  elevenlabs-convai{width:100%}
+  .fallback{display:none;text-align:center;font-size:13px;color:var(--dim);line-height:1.6}
+  .fallback a{color:var(--lit);font-weight:700}
+  .dock[data-widget="off"] .fallback{display:block}
+
+  /* ---------- paisagem / telas baixas ---------- */
+  @media (orientation:landscape){
+    .stack{padding:6px 14px;gap:10px}
+    .dial{width:40px;height:40px;flex-basis:40px}
+    .screen{padding:10px 108px 10px 16px;gap:8px}
+    nav{padding:7px 14px 7px 14px}
+    button{padding:10px}
+    #next{margin-right:96px}
+    .dock{min-height:0;padding:6px 16px calc(6px + env(safe-area-inset-bottom))}
+    .dock .hint{display:none}
+  }
+
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="stack">
+  <div class="dial" aria-hidden="true">
+    <svg viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="44" fill="none" stroke="#1E272C" stroke-width="1"/>
+      <g stroke="#5C6E77" stroke-width="2">
+        <line x1="50" y1="8"  x2="50" y2="16"/>
+        <line x1="92" y1="50" x2="84" y2="50"/>
+        <line x1="50" y1="92" x2="50" y2="84"/>
+        <line x1="8"  y1="50" x2="16" y2="50"/>
+      </g>
+      <g class="needle" id="needle">
+        <line x1="50" y1="50" x2="50" y2="14" stroke="#FFB454" stroke-width="3" stroke-linecap="round"/>
+      </g>
+      <circle cx="50" cy="50" r="5" fill="#0A0C0D" stroke="#3A464C"/>
+    </svg>
+  </div>
+  <div class="readout">
+    <span class="stn" id="stn">VH-VHD</span>
+    <span class="ct" id="ct"></span>
+  </div>
+  <select id="pick" aria-label="Cenário"></select>
+</div>
+
+<div class="screen" id="screen"></div>
+
+<nav>
+  <button id="back" aria-label="Voltar">←</button>
+  <button id="next">Próxima</button>
+</nav>
+
+<div class="dock">
+  <span class="hint">Toque para falar</span>
+  <elevenlabs-convai agent-id="agent_0301m24b5z0det78725wqkdphtx5"></elevenlabs-convai>
+  <p class="fallback">O widget não carregou aqui.<br>
+    <a href="https://elevenlabs.io/app/talk-to?agent_id=agent_0301m24b5z0det78725wqkdphtx5" target="_blank" rel="noopener">Abrir o controlador em outra aba</a>
+  </p>
+</div>
+
+<script src="https://unpkg.com/@elevenlabs/convai-widget-embed" async type="text/javascript"></script>
+
+<script>
+/* ---------------------------------------------------------------
+   EDITE AQUI. Confira frequências e holding points no ERSA.
+   stn = estação no mostrador   you = o que VOCÊ diz (grande)
+   atc = o que esperar          tip = lembrete curto
+----------------------------------------------------------------*/
+const SCENARIOS=[
+{
+ name:"Saída",
+ steps:[
+  {stn:"ATIS",
+   atc:"Sunshine Coast, information Bravo. Runway one three. Wind one two zero degrees, eight knots. QNH one zero one four.",
+   tip:"Só escute. Anote a letra do ATIS e o QNH."},
+
+  {stn:"GROUND",
+   you:"Sunshine Coast Ground, helicopter Victor Hotel Delta, southern apron, received Bravo, request air taxi for departure to the training area.",
+   tip:"Quem você chama, quem você é, onde está, o que quer. Sem matrícula no fim."},
+
+  {stn:"GROUND",
+   atc:"Helicopter Victor Hotel Delta, air taxi to holding point Helipad One via taxiway Charlie, QNH one zero one four."},
+
+  {stn:"GROUND",
+   you:"Air taxi to holding point Helipad One via Charlie, QNH one zero one four, Victor Hotel Delta.",
+   tip:"Readback de tudo que ele instruiu. Aqui a matrícula fecha a frase."},
+
+  {stn:"TOWER",
+   you:"Sunshine Coast Tower, helicopter Victor Hotel Delta, ready Helipad One, for departure to the training area.",
+   tip:"Trocou de Ground para Tower, então se identifica por inteiro de novo."},
+
+  {stn:"TOWER",
+   atc:"Victor Hotel Delta, cleared for take-off, right turn approved, climb to one thousand five hundred, report leaving the zone."},
+
+  {stn:"TOWER",
+   you:"Cleared for take-off, right turn approved, climb one thousand five hundred, will report leaving the zone, Victor Hotel Delta.",
+   tip:"Clearance de decolagem é readback completo."},
+
+  {stn:"TOWER",
+   you:"Sunshine Coast Tower, Victor Hotel Delta, leaving the zone to the west, climbing one thousand five hundred."},
+
+  {stn:"TOWER",
+   atc:"Victor Hotel Delta, frequency change approved, squawk one two zero zero."},
+
+  {stn:"TOWER",
+   you:"Frequency change approved, squawk one two zero zero, Victor Hotel Delta."}
+ ]
+},
+{
+ name:"Retorno",
+ steps:[
+  {stn:"TOWER",
+   you:"Sunshine Coast Tower, helicopter Victor Hotel Delta, ten miles west, one thousand five hundred, received Bravo, inbound.",
+   tip:"Distância, direção, nível, ATIS."},
+
+  {stn:"TOWER",
+   atc:"Victor Hotel Delta, join for Helipad One, maintain one thousand, QNH one zero one four, report three miles."},
+
+  {stn:"TOWER",
+   you:"Join for Helipad One, maintain one thousand, QNH one zero one four, report three miles, Victor Hotel Delta.",
+   tip:"Readback completo, não só o QNH."},
+
+  {stn:"TOWER", you:"Victor Hotel Delta, three miles."},
+
+  {stn:"TOWER", atc:"Victor Hotel Delta, cleared to land Helipad One."},
+
+  {stn:"TOWER", you:"Cleared to land Helipad One, Victor Hotel Delta."},
+
+  {stn:"GROUND",
+   you:"Sunshine Coast Ground, Victor Hotel Delta, clear of Helipad One, request air taxi to the southern apron.",
+   tip:"É air taxi, não taxi."},
+
+  {stn:"GROUND", atc:"Victor Hotel Delta, air taxi to the southern apron via Charlie."},
+
+  {stn:"GROUND", you:"Air taxi to the southern apron via Charlie, Victor Hotel Delta."}
+ ]
+}
+];
+
+const screen=document.getElementById('screen'),
+      pick=document.getElementById('pick'),
+      stn=document.getElementById('stn'),
+      ct=document.getElementById('ct'),
+      needle=document.getElementById('needle'),
+      btnNext=document.getElementById('next');
+
+let sc=0,i=0;
+
+SCENARIOS.forEach((s,n)=>{
+  const o=document.createElement('option');o.value=n;o.textContent=s.name;pick.appendChild(o);
+});
+
+const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+/* Acha o maior corpo de letra que ainda cabe na altura disponível. */
+function fitText(){
+  const say=screen.querySelector('.say');
+  if(!say) return;
+  const others=[...screen.children].filter(c=>c!==say)
+      .reduce((a,c)=>a+c.getBoundingClientRect().height,0);
+  const cs=getComputedStyle(screen);
+  const pad=parseFloat(cs.paddingTop)+parseFloat(cs.paddingBottom);
+  const gaps=parseFloat(cs.rowGap||0)*(screen.children.length-1);
+  const room=screen.clientHeight-pad-others-gaps-2;
+  if(room<=0) return;
+
+  let lo=16,hi=88,best=16;
+  while(lo<=hi){
+    const mid=(lo+hi)>>1;
+    say.style.fontSize=mid+'px';
+    if(say.scrollHeight<=room){ best=mid; lo=mid+1; } else { hi=mid-1; }
+  }
+  say.style.fontSize=best+'px';
+}
+
+function render(){
+  const steps=SCENARIOS[sc].steps, s=steps[i];
+  let h='';
+  if(s.atc) h+='<div class="atc"><span class="who">Controlador</span>'+esc(s.atc)+'</div>';
+  if(s.you) h+='<div class="say"><span class="who">Você fala</span>'+esc(s.you)+'</div>';
+  if(s.tip) h+='<div class="tip">'+esc(s.tip)+'</div>';
+  screen.innerHTML=h;
+
+  stn.textContent=s.stn||'VH-VHD';
+  ct.textContent=(i+1)+'/'+steps.length;
+  needle.style.transform='rotate('+((i+1)/steps.length*300-30)+'deg)';
+  btnNext.textContent=(i===steps.length-1)?'Recomeçar':'Próxima';
+
+  requestAnimationFrame(fitText);
+}
+
+function go(d){
+  const n=SCENARIOS[sc].steps.length;
+  i=(i+d+n)%n;
+  render();
+}
+
+btnNext.addEventListener('click',()=>go(1));
+document.getElementById('back').addEventListener('click',()=>go(-1));
+screen.addEventListener('click',()=>go(1));
+pick.addEventListener('change',()=>{sc=+pick.value;i=0;render();});
+document.addEventListener('keydown',e=>{
+  if(e.code==='Space'||e.code==='ArrowRight'){e.preventDefault();go(1);}
+  if(e.code==='ArrowLeft'){e.preventDefault();go(-1);}
+});
+addEventListener('resize',()=>requestAnimationFrame(fitText));
+addEventListener('orientationchange',()=>setTimeout(fitText,250));
+
+setTimeout(()=>{
+  const el=document.querySelector('elevenlabs-convai');
+  if(!(el && (el.shadowRoot || el.children.length>0)))
+    document.querySelector('.dock').dataset.widget='off';
+},4000);
+
+render();
+</script>
+</body>
+</html>
